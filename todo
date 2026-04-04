@@ -24,7 +24,7 @@ for	      для
 do	      выполнить
 break	    прервать
 continue	продолжить
-return	  вернуть
+#                                                      return	  вернуть
 switch	  выбор
 case	    случай
 default	  по_умолчанию
