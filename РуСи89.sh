@@ -1,7 +1,7 @@
 #!/bin/sh
 # Лицензия ISC
 
-# Авторские права (c) 2026 Alexandre Gomes Gaigalas <alganet@gmail.com>
+# Авторские права (c) 2026 ---
 
 # Разрешается использовать, копировать, изменять и/или распространять данное
 # программное обеспечение для любых целей как с оплатой, так и без нее,
@@ -15,14 +15,13 @@
 # В РЕЗУЛЬТАТЕ ДЕЙСТВИЙ ДОГОВОРА, ХАЛАТНОСТИ ИЛИ ИНЫХ ДЕЙСТВИЙ, ВОЗНИКАЮЩИХ ИЗ
 # ИЛИ В СВЯЗИ С ИСПОЛЬЗОВАНИЕМ ИЛИ РАБОТОЙ ДАННОГО ПРОГРАММНОГО ОБЕСПЕЧЕНИЯ.
 
-# ============================================================
-# c89cc — автономный парсер + компилятор C89 (x86-64 ELF64)
-# TODO: переимеовать яп в РуСи 89
-# ============================================================
+# ============================================================================
+# РуСи89cc_ru.sh — автономный парсер + компилятор РуСи_89 (C89) (x86-64 ELF64)
+# ============================================================================
 #
 # Использование:
-# sh c89cc.sh < prog.c > a.out
-# sh c89cc.sh --no-libc < prog.c > a.out   (пропустить встроенную libc)
+# sh РуСи89cc_ru.sh < prog.c > a.out
+# sh РуСи89cc_ru.sh --no-libc < prog.c > a.out   (пропустить встроенную libc)
 
 # --- core/header.sh ---
 set -euf
@@ -106,12 +105,40 @@ _questn () {
 }
 
 # --- modules/str/core.sh ---
-# Преобразование строки в верхний регистр (a-z → A-Z). Результат в REPLY.
+# Преобразование строки в верхний регистр (a-z → A-Z). Результат в REPLY. ДОБАВИТЬ КИРИЛЛИЦУ
 _ucase () {
-	local _s="$1" _r= _c
+	local _s="$1" _r= _c _byte1 _byte2 _char _UCASE_HB=""
+	
 	while test ${#_s} -gt 0; do
 		_c="${_s%"${_s#?}"}"; _s="${_s#?}"
-		case "$_c" in
+		
+		# Получаем числовой код байта
+		_byte1=$(printf '%d' "'$_c" 2>/dev/null)
+		
+		# Если это старший байт UTF-8 (D0 или D1)
+		if test "$_byte1" -eq 208 || test "$_byte1" -eq 209; then
+			_UCASE_HB=$_byte1
+			continue
+		fi
+		
+		# Если есть сохраненный старший байт - собираем русскую букву
+		if test -n "$_UCASE_HB"; then
+			_byte2=$_byte1
+			if test "$_UCASE_HB" -eq 208; then
+				# D0 xx -> А-Я, а-п
+				_char=$(printf "\\$(($_UCASE_HB/64))$((($_UCASE_HB/8)%8))$(($_UCASE_HB%8))\\$(($_byte2/64))$((($_byte2/8)%8))$(($_byte2%8))")
+			else
+				# D1 xx -> Ё, ё, р-я
+				_char=$(printf "\\$(($_UCASE_HB/64))$((($_UCASE_HB/8)%8))$(($_UCASE_HB%8))\\$(($_byte2/64))$((($_byte2/8)%8))$(($_byte2%8))")
+			fi
+			_UCASE_HB=""
+		else
+			_char=$_c
+		fi
+		
+		# Преобразование в верхний регистр
+		case "$_char" in
+		# Латиница
 		a) _r="${_r}A";; b) _r="${_r}B";; c) _r="${_r}C";;
 		d) _r="${_r}D";; e) _r="${_r}E";; f) _r="${_r}F";;
 		g) _r="${_r}G";; h) _r="${_r}H";; i) _r="${_r}I";;
@@ -121,21 +148,49 @@ _ucase () {
 		s) _r="${_r}S";; t) _r="${_r}T";; u) _r="${_r}U";;
 		v) _r="${_r}V";; w) _r="${_r}W";; x) _r="${_r}X";;
 		y) _r="${_r}Y";; z) _r="${_r}Z";;
-		*) _r="${_r}${_c}";;
+		# Кириллица (строчные)
+		а) _r="${_r}А";; б) _r="${_r}Б";; в) _r="${_r}В";;
+		г) _r="${_r}Г";; д) _r="${_r}Д";; е) _r="${_r}Е";;
+		ё) _r="${_r}Ё";; ж) _r="${_r}Ж";; з) _r="${_r}З";;
+		и) _r="${_r}И";; й) _r="${_r}Й";; к) _r="${_r}К";;
+		л) _r="${_r}Л";; м) _r="${_r}М";; н) _r="${_r}Н";;
+		о) _r="${_r}О";; п) _r="${_r}П";; р) _r="${_r}Р";;
+		с) _r="${_r}С";; т) _r="${_r}Т";; у) _r="${_r}У";;
+		ф) _r="${_r}Ф";; х) _r="${_r}Х";; ц) _r="${_r}Ц";;
+		ч) _r="${_r}Ч";; ш) _r="${_r}Ш";; щ) _r="${_r}Щ";;
+		ъ) _r="${_r}Ъ";; ы) _r="${_r}Ы";; ь) _r="${_r}Ь";;
+		э) _r="${_r}Э";; ю) _r="${_r}Ю";; я) _r="${_r}Я";;
+		# Заглавные и остальное без изменений
+		*) _r="${_r}${_char}";;
 		esac
 	done
 	REPLY="$_r"
 }
 
+
 # Преобразование символа верхнего регистра в нижний. Результат в REPLY.
 _lcase () {
-	case "$1" in A) REPLY=a;; B) REPLY=b;; C) REPLY=c;; D) REPLY=d;;
+	case "$1" in
+	# Латиница
+	A) REPLY=a;; B) REPLY=b;; C) REPLY=c;; D) REPLY=d;;
 	E) REPLY=e;; F) REPLY=f;; G) REPLY=g;; H) REPLY=h;;
 	I) REPLY=i;; J) REPLY=j;; K) REPLY=k;; L) REPLY=l;;
 	M) REPLY=m;; N) REPLY=n;; O) REPLY=o;; P) REPLY=p;;
 	Q) REPLY=q;; R) REPLY=r;; S) REPLY=s;; T) REPLY=t;;
 	U) REPLY=u;; V) REPLY=v;; W) REPLY=w;; X) REPLY=x;;
-	Y) REPLY=y;; Z) REPLY=z;; *) REPLY=;; esac
+	Y) REPLY=y;; Z) REPLY=z;;
+	# Кириллица (заглавные → строчные)
+	А) REPLY=а;; Б) REPLY=б;; В) REPLY=в;; Г) REPLY=г;;
+	Д) REPLY=д;; Е) REPLY=е;; Ё) REPLY=ё;; Ж) REPLY=ж;;
+	З) REPLY=з;; И) REPLY=и;; Й) REPLY=й;; К) REPLY=к;;
+	Л) REPLY=л;; М) REPLY=м;; Н) REPLY=н;; О) REPLY=о;;
+	П) REPLY=п;; Р) REPLY=р;; С) REPLY=с;; Т) REPLY=т;;
+	У) REPLY=у;; Ф) REPLY=ф;; Х) REPLY=х;; Ц) REPLY=ц;;
+	Ч) REPLY=ч;; Ш) REPLY=ш;; Щ) REPLY=щ;; Ъ) REPLY=ъ;;
+	Ы) REPLY=ы;; Ь) REPLY=ь;; Э) REPLY=э;; Ю) REPLY=ю;;
+	Я) REPLY=я;;
+	*) REPLY=;;
+	esac
 }
 
 # Преобразование строки верхнего регистра в нижний. Результат в REPLY.
@@ -148,6 +203,75 @@ _lcase_str () {
 	done
 	REPLY="$_r"
 }
+
+
+
+
+# Извлечь следующий UTF-8 символ из CODE, результат в _CHAR, продвинуть CODE
+# Использует глобальную переменную CODE, изменяет её
+# Результат в _CHAR (глобальная переменная)
+_get_utf8_char() {
+	local _c _byte1 _UCASE_HB=""
+	_CHAR=""
+	_c="${CODE%"${CODE#?}"}"
+	_byte1=$(printf '%d' "'$_c" 2>/dev/null)
+	
+	# Если это старший байт UTF-8 (D0 или D1)
+	if test "$_byte1" -eq 208 || test "$_byte1" -eq 209; then
+		_UCASE_HB=$_byte1
+		_CHAR="$_c"
+		CODE="${CODE#?}"
+		_c="${CODE%"${CODE#?}"}"
+		_CHAR="${_CHAR}$_c"
+		CODE="${CODE#?}"
+	else
+		_CHAR="$_c"
+		CODE="${CODE#?}"
+	fi
+}
+
+# Накопление UTF-8 идентификатора (поддерживает латиницу, цифры, подчёркивание, кириллицу)
+_accum_utf8() {
+    local _res="" _b1 _b2 _c1 _c2
+    while test ${#CODE} -gt 0; do
+        _c1="${CODE%"${CODE#?}"}"
+        _b1=$(printf '%d' "'$_c1" 2>/dev/null)
+
+        # ASCII: 0-9
+        if test "$_b1" -ge 48 && test "$_b1" -le 57; then
+            _res="${_res}${_c1}"; CODE="${CODE#?}"
+        # ASCII: A-Z
+        elif test "$_b1" -ge 65 && test "$_b1" -le 90; then
+            _res="${_res}${_c1}"; CODE="${CODE#?}"
+        # ASCII: a-z
+        elif test "$_b1" -ge 97 && test "$_b1" -le 122; then
+            _res="${_res}${_c1}"; CODE="${CODE#?}"
+        # Символ _
+        elif test "$_b1" -eq 95; then
+            _res="${_res}${_c1}"; CODE="${CODE#?}"
+        # Кириллица UTF-8 (старший байт 208 или 209)
+        elif test "$_b1" -eq 208 || test "$_b1" -eq 209; then
+            CODE="${CODE#?}"
+            if test ${#CODE} -eq 0; then
+                CODE="${_c1}${CODE}"; break
+            fi
+            _c2="${CODE%"${CODE#?}"}"
+            _b2=$(printf '%d' "'$_c2" 2>/dev/null)
+
+            # Второй байт UTF-8 всегда 128..191
+            if test "$_b2" -ge 128 && test "$_b2" -le 191; then
+                _res="${_res}${_c1}${_c2}"
+                CODE="${CODE#?}"
+            else
+                CODE="${_c1}${CODE}"; break
+            fi
+        else
+            break
+        fi
+    done
+    MATCH="$_res"
+}
+
 
 # --- modules/io/readall.sh ---
 # Чтение всего stdin в REPLY (заменяет /bin/cat для eval "$(_readall)").
@@ -4590,118 +4714,257 @@ c89_parser () {
 			*) _pars_err;;
 			esac;;
 
-		'r'*)
-			case $STATE in
-			Cc)
-				ast_more; MATCH="${CODE%%[!a-zA-Z0-9_]*}"
-				_ucase "$MATCH"
-				case "$REPLY" in
-				'REGISTER') STATE=C68; ast_Cr; CODE="${CODE#"$MATCH"}"; _COL=$((_COL+${#MATCH})); continue;;
-				'RETURN') STATE=C68; ast_C23; CODE="${CODE#"$MATCH"}"; _COL=$((_COL+${#MATCH})); continue;;
-				*) STATE=C68; ast_C38; continue;;
+			'r'*)
+				case $STATE in
+				
+				# ============================================================
+				# Состояние Cc: разбор ключевых слов и идентификаторов
+				# ============================================================
+				Cc)
+					# Накопление слова (буквы, цифры, подчёркивание)
+					ast_more; MATCH="${CODE%%[!a-zA-Z0-9_]*}"
+					# Преобразование в верхний регистр для сравнения
+					_ucase "$MATCH"
+					case "$REPLY" in
+					'REGISTER') 
+						# Ключевое слово register → создаём узел Cr, переходим в C68
+						STATE=C68; ast_Cr; CODE="${CODE#"$MATCH"}"; _COL=$((_COL+${#MATCH})); continue;;
+					'RETURN')
+						# Ключевое слово return → создаём узел C23 (return_item)
+						STATE=C68; ast_C23; CODE="${CODE#"$MATCH"}"; _COL=$((_COL+${#MATCH})); continue;;
+					*)
+						# Не ключевое слово → обрабатываем как идентификатор (C48)
+						STATE=C68; ast_C38; continue;;
+					esac;;
+				
+				# ============================================================
+				# Состояние Cb: file_body (тело файла)
+				# ============================================================
+				Cb) STATE=C67; ast_Cc; continue;;
+				
+				# ============================================================
+				# Состояние C67: ожидание выражения или оператора
+				# ============================================================
+				C67) ast_Cb; continue;;
+				
+				# ============================================================
+				# Состояние C3: func_block (тело функции после {)
+				# ============================================================
+				C3) STATE=C98; ast_C37; continue;;
+				
+				# ============================================================
+				# Состояния для обработки else (C137, C138, C139)
+				# ============================================================
+				C137) STATE=C138; ast_Cc; continue;;  # после else ожидаем ключевое слово/идентификатор
+				C139) STATE=C138; ast_Cc; continue;;  # переход в C138
+				
+				# ============================================================
+				# Состояния для обработки do-while (C142, C147)
+				# ============================================================
+				C142) STATE=C143; ast_Cc; continue;;  # после do ожидаем ключевое слово/идентификатор
+				C147) STATE=C148; ast_Cc; continue;;
+				
+				# ============================================================
+				# Состояние C30: do_item (тело do-while)
+				# ============================================================
+				C30) STATE=C149; ast_Cc; continue;;  # после тела do ожидаем while
+				
+				# ============================================================
+				# Состояния для switch/case/default (C156, C159, C161)
+				# ============================================================
+				C156) STATE=C157; ast_Cc; continue;;
+				C159) STATE=C160; ast_Cc; continue;;
+				C161) STATE=C162; ast_Cc; continue;;
+				
+				# ============================================================
+				# Состояния для блока (C36, C37, C169)
+				# ============================================================
+				C36) STATE=C167; ast_C37; continue;;  # открывающая {, переход в тело блока
+				C37) STATE=C169; ast_Cc; continue;;   # внутри блока, ожидаем ключевое слово/идентификатор
+				C169) STATE=C170; ast_C37; continue;; # закрывающая }
+				
+				# ============================================================
+				# Состояние Ca: документ (корень)
+				# ============================================================
+				Ca) STATE=Ca; ast_Cb; continue;;      # начало файла, ожидаем объявления
+				
+				# ============================================================
+				# Состояния для спецификаторов типов (Cd..Cs)
+				# ============================================================
+				Cd) STATE=C69; ast_Cw; continue;;     # int → ожидаем продолжение объявления
+				Ce) STATE=C70; ast_Cw; continue;;     # char
+				Cf) STATE=C71; ast_Cw; continue;;     # void
+				Cg) STATE=C72; ast_Cw; continue;;     # long
+				Ch) STATE=C73; ast_Cw; continue;;     # short
+				Ci) STATE=C74; ast_Cw; continue;;     # float
+				Cj) STATE=C75; ast_Cw; continue;;     # double
+				Ck) STATE=C76; ast_Cw; continue;;     # signed
+				Cl) STATE=C77; ast_Cw; continue;;     # unsigned
+				Cm) STATE=C78; ast_Cw; continue;;     # const
+				Cn) STATE=C79; ast_Cw; continue;;     # static
+				Co) STATE=C80; ast_Cw; continue;;     # extern
+				Cp) STATE=C81; ast_Cw; continue;;     # volatile
+				Cq) STATE=C82; ast_Cw; continue;;     # auto
+				Cr) STATE=C83; ast_Cw; continue;;     # register
+				Cs) STATE=C84; ast_Cw; continue;;     # typedef
+				
+				# ============================================================
+				# Состояния для struct/union/enum (Ct, Cu, Cv)
+				# ============================================================
+				Ct) STATE=C85; ast_C15; continue;;    # struct → ожидаем имя или {
+				Cu) STATE=C86; ast_C15; continue;;    # union
+				Cv) STATE=C87; ast_C16; continue;;    # enum
+				
+				# ============================================================
+				# Состояния для указателей и объявлений (Cw, Cx, Cy)
+				# ============================================================
+				Cw) STATE=C88; ast_Cy; continue;;     # decl_rest
+				Cx) STATE=C89; ast_Cw; continue;;     # ptr_decl (*)
+				Cy) STATE=C90; ast_C48; continue;;    # ident_decl
+				
+				# ============================================================
+				# Состояние C4: array_decl (объявление массива)
+				# ============================================================
+				C4) ast_C39; continue;;               # ожидаем выражение для размера
+				
+				# ============================================================
+				# Состояние C5: init_part (= инициализатор)
+				# ============================================================
+				C5) STATE=C101; ast_C21; continue;;   # ожидаем инициализатор
+				
+				# ============================================================
+				# Состояния для параметров функций (C103..C110)
+				# ============================================================
+				C103) STATE=C6; ast_C7; continue;;    # param
+				C7) STATE=C104; ast_C48; continue;;   # ожидаем идентификатор параметра
+				C105) ast_C39; continue;;             # выражение в параметре
+				C106) STATE=C104; ast_C21; continue;; # инициализатор параметра
+				C107) STATE=C108; ast_C9; continue;;  # param_rest (запятая)
+				C9) STATE=C109; ast_C48; continue;;   # ожидаем следующий параметр
+				C10) STATE=C110; ast_C9; continue;;   # param_ptr (*)
+				
+				# ============================================================
+				# Состояния для struct/union/enum внутри объявлений (C12..C18)
+				# ============================================================
+				C12) STATE=C112; ast_C48; continue;;  # struct в объявлении
+				C13) STATE=C113; ast_C48; continue;;  # union
+				C14) STATE=C114; ast_C48; continue;;  # enum
+				C15) STATE=C115; ast_C48; continue;;  # struct_rest
+				C115) STATE=C116; ast_Cw; continue;;  # продолжение struct
+				C16) STATE=C118; ast_C48; continue;;  # enum_vars
+				C118) STATE=C119; ast_C17; continue;; # enum_rest
+				C121) STATE=C122; ast_C18; continue;; # enumerator_list
+				C17) STATE=C124; ast_C19; continue;;  # enum_tail
+				C125) STATE=C126; ast_C18; continue;; # enum_vars продолжение
+				C18) ast_Cy; continue;;               # завершение enum
+				
+				# ============================================================
+				# Состояния для инициализаторов (C19, C20, C128, C129, C130)
+				# ============================================================
+				C19) STATE=C127; ast_C20; continue;;  # enumerator_list
+				C128) STATE=C127; ast_C20; continue;; # следующий enumerator
+				C20) STATE=C129; ast_C48; continue;;  # enumerator
+				C130) STATE=C129; ast_C39; continue;; # = значение для enumerator
+				C21) STATE=C131; ast_C39; continue;;  # initializer
+				C22) STATE=C132; ast_C21; continue;;  # brace_init { ... }
+				C133) STATE=C132; ast_C21; continue;; # продолжение brace_init
+				
+				# ============================================================
+				# Состояние C23: return_item
+				# ============================================================
+				C23) ast_C39; continue;;              # после return ожидаем выражение
+				
+				# ============================================================
+				# Состояние C26: goto_item
+				# ============================================================
+				C26) STATE=C134; ast_C48; continue;;  # после goto ожидаем метку
+				
+				# ============================================================
+				# Состояния для if/while/for/do/switch (C135..C166)
+				# ============================================================
+				C135) STATE=C136; ast_C39; continue;; # после if( ожидаем условие
+				C140) STATE=C141; ast_C39; continue;; # после while( ожидаем условие
+				C144) ast_C39; continue;;             # после for( ожидаем выражение
+				C145) ast_C39; continue;;             # после for(; ожидаем выражение
+				C146) ast_C39; continue;;             # после for(;; ожидаем выражение
+				C151) STATE=C152; ast_C39; continue;; # после do { ... } while( ожидаем условие
+				C154) STATE=C155; ast_C39; continue;; # после switch( ожидаем выражение
+				C32) STATE=C158; ast_C39; continue;;  # case: ожидаем выражение
+				C163) STATE=C164; ast_C39; continue;; # sizeof( ожидаем выражение
+				
+				# ============================================================
+				# Состояние C35: pp_line (препроцессор #)
+				# ============================================================
+				C35) STATE=C166; ast_C48; continue;;  # после # ожидаем директиву
+				
+				# ============================================================
+				# Состояние C38: expr_item
+				# ============================================================
+				C38) STATE=C171; ast_C39; continue;;  # ожидаем выражение
+				
+				# ============================================================
+				# Состояние C39: expr
+				# ============================================================
+				C39) ast_C40; continue;;              # разбор выражения
+				
+				# ============================================================
+				# Состояние C40: atom (литералы, идентификаторы)
+				# ============================================================
+				C40) STATE=C172; ast_C48; continue;;  # ожидаем идентификатор или число
+				
+				# ============================================================
+				# Состояния для sizeof (C173, C174, C175)
+				# ============================================================
+				C173) STATE=C174; ast_C42; continue;; # sizeof( тип )
+				C42) STATE=C175; ast_C48; continue;;  # ожидаем имя типа
+				C175) ast_C48; continue;;             # ожидаем идентификатор
+				
+				# ============================================================
+				# Состояния для скобок и вызовов (C43, C44, C178)
+				# ============================================================
+				C43) STATE=C176; ast_C39; continue;;  # ( выражение )
+				C44) STATE=C177; ast_C39; continue;;  # аргументы функции
+				C178) STATE=C177; ast_C39; continue;; # продолжение аргументов
+				
+				# ============================================================
+				# Состояния для унарных операторов (C49..C54)
+				# ============================================================
+				C49) STATE=C179; ast_C40; continue;;  # унарный -
+				C50) STATE=C180; ast_C40; continue;;  # унарный !
+				C51) STATE=C181; ast_C40; continue;;  # унарный ~
+				C52) STATE=C182; ast_C40; continue;;  # унарный *
+				C53) STATE=C183; ast_C40; continue;;  # унарный &
+				C54) STATE=C184; ast_C40; continue;;  # ++ (префиксный)
+				
+				# ============================================================
+				# Состояние C55: бинарный оператор
+				# ============================================================
+				C55) ast_C40; continue;;              # ожидаем операнд
+				
+				# ============================================================
+				# Состояния для постфиксных операторов (C56, C58, C60, C61, C64, C66)
+				# ============================================================
+				C56) STATE=C57; ast_C44; continue;;   # вызов функции (
+				C58) STATE=C59; ast_C39; continue;;   # индексация массива [
+				C60) STATE=C185; ast_C48; continue;;  # доступ к полю .
+				C61) STATE=C186; ast_C48; continue;;  # доступ к полю ->
+				C64) ast_C40; continue;;              # тернарный оператор ?
+				C66) ast_C40; continue;;              # после : в тернарном операторе
+				
+				# ============================================================
+				# Завершающие состояния (закрытие узлов AST)
+				# ============================================================
+				C68|C88|C91|C92|C97|C104|C108|C109|C111|C116|C117|C119|C123|C127|C129|C131|C138|C168|C170|C172|C177|C90|Cz|C93|C2|C99|C101|C185|C186|C187|C188|C94) 
+					ast_close_col_xc;;                # закрыть узел и продолжить подъём по приоритету
+				
+				C69|C70|C71|C72|C73|C74|C75|C76|C77|C78|C79|C80|C81|C82|C83|C84|C85|C86|C87|C89|C96|C98|C100|C102|C110|C112|C113|C114|C122|C126|C143|C148|C157|C160|C162|C166|C167|C179|C180|C181|C182|C183|C184) 
+					ast_close_xc;;                   # закрыть узел и выйти из подъёма по приоритету
+				
+				# ============================================================
+				# Если состояние не найдено — ошибка
+				# ============================================================
+				*) _pars_err;;
 				esac;;
-			Cb) STATE=C67; ast_Cc; continue;;
-			C67) ast_Cb; continue;;
-			C3) STATE=C98; ast_C37; continue;;
-			C137) STATE=C138; ast_Cc; continue;;
-			C139) STATE=C138; ast_Cc; continue;;
-			C142) STATE=C143; ast_Cc; continue;;
-			C147) STATE=C148; ast_Cc; continue;;
-			C30) STATE=C149; ast_Cc; continue;;
-			C156) STATE=C157; ast_Cc; continue;;
-			C159) STATE=C160; ast_Cc; continue;;
-			C161) STATE=C162; ast_Cc; continue;;
-			C36) STATE=C167; ast_C37; continue;;
-			C37) STATE=C169; ast_Cc; continue;;
-			C169) STATE=C170; ast_C37; continue;;
-			Ca) STATE=Ca; ast_Cb; continue;;
-			Cd) STATE=C69; ast_Cw; continue;;
-			Ce) STATE=C70; ast_Cw; continue;;
-			Cf) STATE=C71; ast_Cw; continue;;
-			Cg) STATE=C72; ast_Cw; continue;;
-			Ch) STATE=C73; ast_Cw; continue;;
-			Ci) STATE=C74; ast_Cw; continue;;
-			Cj) STATE=C75; ast_Cw; continue;;
-			Ck) STATE=C76; ast_Cw; continue;;
-			Cl) STATE=C77; ast_Cw; continue;;
-			Cm) STATE=C78; ast_Cw; continue;;
-			Cn) STATE=C79; ast_Cw; continue;;
-			Co) STATE=C80; ast_Cw; continue;;
-			Cp) STATE=C81; ast_Cw; continue;;
-			Cq) STATE=C82; ast_Cw; continue;;
-			Cr) STATE=C83; ast_Cw; continue;;
-			Cs) STATE=C84; ast_Cw; continue;;
-			Ct) STATE=C85; ast_C15; continue;;
-			Cu) STATE=C86; ast_C15; continue;;
-			Cv) STATE=C87; ast_C16; continue;;
-			Cw) STATE=C88; ast_Cy; continue;;
-			Cx) STATE=C89; ast_Cw; continue;;
-			Cy) STATE=C90; ast_C48; continue;;
-			C4) ast_C39; continue;;
-			C5) STATE=C101; ast_C21; continue;;
-			C103) STATE=C6; ast_C7; continue;;
-			C7) STATE=C104; ast_C48; continue;;
-			C105) ast_C39; continue;;
-			C106) STATE=C104; ast_C21; continue;;
-			C107) STATE=C108; ast_C9; continue;;
-			C9) STATE=C109; ast_C48; continue;;
-			C10) STATE=C110; ast_C9; continue;;
-			C12) STATE=C112; ast_C48; continue;;
-			C13) STATE=C113; ast_C48; continue;;
-			C14) STATE=C114; ast_C48; continue;;
-			C15) STATE=C115; ast_C48; continue;;
-			C115) STATE=C116; ast_Cw; continue;;
-			C16) STATE=C118; ast_C48; continue;;
-			C118) STATE=C119; ast_C17; continue;;
-			C121) STATE=C122; ast_C18; continue;;
-			C17) STATE=C124; ast_C19; continue;;
-			C125) STATE=C126; ast_C18; continue;;
-			C18) ast_Cy; continue;;
-			C19) STATE=C127; ast_C20; continue;;
-			C128) STATE=C127; ast_C20; continue;;
-			C20) STATE=C129; ast_C48; continue;;
-			C130) STATE=C129; ast_C39; continue;;
-			C21) STATE=C131; ast_C39; continue;;
-			C22) STATE=C132; ast_C21; continue;;
-			C133) STATE=C132; ast_C21; continue;;
-			C23) ast_C39; continue;;
-			C26) STATE=C134; ast_C48; continue;;
-			C135) STATE=C136; ast_C39; continue;;
-			C140) STATE=C141; ast_C39; continue;;
-			C144) ast_C39; continue;;
-			C145) ast_C39; continue;;
-			C146) ast_C39; continue;;
-			C151) STATE=C152; ast_C39; continue;;
-			C154) STATE=C155; ast_C39; continue;;
-			C32) STATE=C158; ast_C39; continue;;
-			C163) STATE=C164; ast_C39; continue;;
-			C35) STATE=C166; ast_C48; continue;;
-			C38) STATE=C171; ast_C39; continue;;
-			C39) ast_C40; continue;;
-			C40) STATE=C172; ast_C48; continue;;
-			C173) STATE=C174; ast_C42; continue;;
-			C42) STATE=C175; ast_C48; continue;;
-			C175) ast_C48; continue;;
-			C43) STATE=C176; ast_C39; continue;;
-			C44) STATE=C177; ast_C39; continue;;
-			C178) STATE=C177; ast_C39; continue;;
-			C49) STATE=C179; ast_C40; continue;;
-			C50) STATE=C180; ast_C40; continue;;
-			C51) STATE=C181; ast_C40; continue;;
-			C52) STATE=C182; ast_C40; continue;;
-			C53) STATE=C183; ast_C40; continue;;
-			C54) STATE=C184; ast_C40; continue;;
-			C55) ast_C40; continue;;
-			C56) STATE=C57; ast_C44; continue;;
-			C58) STATE=C59; ast_C39; continue;;
-			C60) STATE=C185; ast_C48; continue;;
-			C61) STATE=C186; ast_C48; continue;;
-			C64) ast_C40; continue;;
-			C66) ast_C40; continue;;
-			C68|C88|C91|C92|C97|C104|C108|C109|C111|C116|C117|C119|C123|C127|C129|C131|C138|C168|C170|C172|C177|C90|Cz|C93|C2|C99|C101|C185|C186|C187|C188|C94) ast_close_col_xc;;
-			C69|C70|C71|C72|C73|C74|C75|C76|C77|C78|C79|C80|C81|C82|C83|C84|C85|C86|C87|C89|C96|C98|C100|C102|C110|C112|C113|C114|C122|C126|C143|C148|C157|C160|C162|C166|C167|C179|C180|C181|C182|C183|C184) ast_close_xc;;
-			*) _pars_err;;
-			esac;;
 
 		't'*)
 			case $STATE in
@@ -5595,7 +5858,126 @@ c89_parser () {
 			*) _pars_err;;
 			esac;;
 
-		[a-zA-Z_0-90-9a-fA-FxXuUlL.]*)
+		#---РУССКИЕ ИДЕНТИФИКАТОРЫ---
+
+		#ВЕРНУТЬ
+		'в'*|'В'*)
+			case $STATE in
+			Cc)
+				_accum_utf8
+				_ucase "$MATCH"
+				case "$REPLY" in
+				'REGISTER') STATE=C68; ast_Cr; continue;;
+				'RETURN'|'ВЕРНУТЬ') STATE=C68; ast_C23; continue;;
+				*) STATE=C68; ast_C38; continue;;
+				esac;;
+			C3) STATE=C98; ast_C37; continue;;
+			Cb) STATE=C67; ast_Cc; continue;;
+			C67) ast_Cb; continue;;
+			C137) STATE=C138; ast_Cc; continue;;
+			C139) STATE=C138; ast_Cc; continue;;
+			C142) STATE=C143; ast_Cc; continue;;
+			C147) STATE=C148; ast_Cc; continue;;
+			C30) STATE=C149; ast_Cc; continue;;
+			C156) STATE=C157; ast_Cc; continue;;
+			C159) STATE=C160; ast_Cc; continue;;
+			C161) STATE=C162; ast_Cc; continue;;
+			C36) STATE=C167; ast_C37; continue;;
+			C37) STATE=C169; ast_Cc; continue;;
+			C169) STATE=C170; ast_C37; continue;;
+			Ca) STATE=Ca; ast_Cb; continue;;
+			Cd) STATE=C69; ast_Cw; continue;;
+			Ce) STATE=C70; ast_Cw; continue;;
+			Cf) STATE=C71; ast_Cw; continue;;
+			Cg) STATE=C72; ast_Cw; continue;;
+			Ch) STATE=C73; ast_Cw; continue;;
+			Ci) STATE=C74; ast_Cw; continue;;
+			Cj) STATE=C75; ast_Cw; continue;;
+			Ck) STATE=C76; ast_Cw; continue;;
+			Cl) STATE=C77; ast_Cw; continue;;
+			Cm) STATE=C78; ast_Cw; continue;;
+			Cn) STATE=C79; ast_Cw; continue;;
+			Co) STATE=C80; ast_Cw; continue;;
+			Cp) STATE=C81; ast_Cw; continue;;
+			Cq) STATE=C82; ast_Cw; continue;;
+			Cr) STATE=C83; ast_Cw; continue;;
+			Cs) STATE=C84; ast_Cw; continue;;
+			Ct) STATE=C85; ast_C15; continue;;
+			Cu) STATE=C86; ast_C15; continue;;
+			Cv) STATE=C87; ast_C16; continue;;
+			Cw) STATE=C88; ast_Cy; continue;;
+			Cx) STATE=C89; ast_Cw; continue;;
+			Cy) STATE=C90; ast_C48; continue;;
+			C4) ast_C39; continue;;
+			C5) STATE=C101; ast_C21; continue;;
+			C103) STATE=C6; ast_C7; continue;;
+			C7) STATE=C104; ast_C48; continue;;
+			C105) ast_C39; continue;;
+			C106) STATE=C104; ast_C21; continue;;
+			C107) STATE=C108; ast_C9; continue;;
+			C9) STATE=C109; ast_C48; continue;;
+			C10) STATE=C110; ast_C9; continue;;
+			C12) STATE=C112; ast_C48; continue;;
+			C13) STATE=C113; ast_C48; continue;;
+			C14) STATE=C114; ast_C48; continue;;
+			C15) STATE=C115; ast_C48; continue;;
+			C115) STATE=C116; ast_Cw; continue;;
+			C16) STATE=C118; ast_C48; continue;;
+			C118) STATE=C119; ast_C17; continue;;
+			C121) STATE=C122; ast_C18; continue;;
+			C17) STATE=C124; ast_C19; continue;;
+			C125) STATE=C126; ast_C18; continue;;
+			C18) ast_Cy; continue;;
+			C19) STATE=C127; ast_C20; continue;;
+			C128) STATE=C127; ast_C20; continue;;
+			C20) STATE=C129; ast_C48; continue;;
+			C130) STATE=C129; ast_C39; continue;;
+			C21) STATE=C131; ast_C39; continue;;
+			C22) STATE=C132; ast_C21; continue;;
+			C133) STATE=C132; ast_C21; continue;;
+			C23) ast_C39; continue;;
+			C26) STATE=C134; ast_C48; continue;;
+			C135) STATE=C136; ast_C39; continue;;
+			C140) STATE=C141; ast_C39; continue;;
+			C144) ast_C39; continue;;
+			C145) ast_C39; continue;;
+			C146) ast_C39; continue;;
+			C151) STATE=C152; ast_C39; continue;;
+			C154) STATE=C155; ast_C39; continue;;
+			C32) STATE=C158; ast_C39; continue;;
+			C163) STATE=C164; ast_C39; continue;;
+			C35) STATE=C166; ast_C48; continue;;
+			C38) STATE=C171; ast_C39; continue;;
+			C39) ast_C40; continue;;
+			C40) STATE=C172; ast_C48; continue;;
+			C173) STATE=C174; ast_C42; continue;;
+			C42) STATE=C175; ast_C48; continue;;
+			C175) ast_C48; continue;;
+			C43) STATE=C176; ast_C39; continue;;
+			C44) STATE=C177; ast_C39; continue;;
+			C178) STATE=C177; ast_C39; continue;;
+			C49) STATE=C179; ast_C40; continue;;
+			C50) STATE=C180; ast_C40; continue;;
+			C51) STATE=C181; ast_C40; continue;;
+			C52) STATE=C182; ast_C40; continue;;
+			C53) STATE=C183; ast_C40; continue;;
+			C54) STATE=C184; ast_C40; continue;;
+			C55) ast_C40; continue;;
+			C56) STATE=C57; ast_C44; continue;;
+			C58) STATE=C59; ast_C39; continue;;
+			C60) STATE=C185; ast_C48; continue;;
+			C61) STATE=C186; ast_C48; continue;;
+			C64) ast_C40; continue;;
+			C66) ast_C40; continue;;
+			C68|C88|C91|C92|C97|C104|C108|C109|C111|C116|C117|C119|C123|C127|C129|C131|C138|C168|C170|C172|C177|C90|Cz|C93|C2|C99|C101|C185|C186|C187|C188|C94) ast_close_col_xc;;
+			C69|C70|C71|C72|C73|C74|C75|C76|C77|C78|C79|C80|C81|C82|C83|C84|C85|C86|C87|C89|C96|C98|C100|C102|C110|C112|C113|C114|C122|C126|C143|C148|C157|C160|C162|C166|C167|C179|C180|C181|C182|C183|C184) ast_close_xc;;
+			*) _pars_err;;
+			esac;;	
+
+        
+		
+		#ПЕРЕМЕННЫЕ НА КИРИЛЛИЦЕ НУЖНЫ ЕЩЕ
+		[a-zA-Z_а-яА-Я_0-90-9a-fA-FxXuUlL.]*)
 			case $STATE in
 			Cb) STATE=C67; ast_Cc; continue;;
 			C67) ast_Cb; continue;;
