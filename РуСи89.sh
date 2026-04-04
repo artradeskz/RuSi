@@ -1049,8 +1049,25 @@ c89_parser () {
 		C47) ast_more; REST="${CODE%%[!0-9a-fA-FxXuUlL.]*}"
 			case "$REST" in ?*) ast_bulk_nl;; *) ast_close; _XC=1; _PREV=; continue;; esac;;
 		# ident: накопление [a-zA-Z_0-9]
-		C48) ast_more; REST="${CODE%%[!a-zA-Z_а-яА-Я_0-9]*}"
-			case "$REST" in ?*) ast_bulk_nl;; *) ast_close; _XC=1; _PREV=; continue;; esac;;
+		C48)
+			_accum_utf8
+			case "$MATCH" in
+				?*)
+					CONSUMED="$MATCH"
+					_COL=$((_COL + ${#MATCH}))
+					ast_close
+					_XC=1
+					_PREV=
+					continue
+					;;
+				*)
+					ast_close
+					_XC=1
+					_PREV=
+					continue
+					;;
+			esac
+			;;
 		Cc|Cd|Ce|Cf|Cg|Ch|Ci|Cj|Ck|Cl|Cm|Cn|Co|Cp|Cq|Cr|Cs|Ct|Cu|Cv|Cw|Cx|Cy|Cz|C1|C2|C3|C4|C5|C6|C7|C8|C9|C10|C11|C12|C13|C14|C15|C16|C17|C18|C19|C20|C21|C22|C23|C24|C25|C26|C27|C28|C29|C31|C32|C33|C34|C35|C36|C37|C38|C39|C40|C41|C42|C43|C44|C49|C50|C51|C52|C53|C54|C55|C56|C57|C58|C59|C60|C61|C62|C63|C64|C65|C66|C67|C90|C93|C94|C95|C99|C101|C103|C104|C105|C106|C107|C115|C118|C120|C121|C124|C125|C127|C128|C129|C130|C132|C133|C134|C135|C136|C138|C140|C141|C142|C144|C145|C146|C147|C149|C150|C151|C152|C153|C154|C155|C156|C158|C159|C161|C163|C164|C165|C171|C173|C174|C175|C176|C177|C178)
 			case $CODE in ' '*|"$_TAB"*|"$_EOL"*)
 				ast_skip; continue;; esac;;
@@ -5860,7 +5877,7 @@ c89_parser () {
 
 		#---РУССКИЕ ИДЕНТИФИКАТОРЫ---
 
-		#ВЕРНУТЬ
+		#ВЕРНУТЬ  (extern	  внешний   ???????)
 		'в'*|'В'*)
 			case $STATE in
 			Cc)
