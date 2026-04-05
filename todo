@@ -1,4 +1,4 @@
-int	      цел
+#                                                     int	      цел
 char	    симв
 void	    пуст
 long	    длинный
