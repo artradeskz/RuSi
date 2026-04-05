@@ -1,6 +1,6 @@
 int	      цел
 char	    симв
-void	    метод
+void	    пуст
 long	    длинный
 short	    короткий
 float	    плавающий
