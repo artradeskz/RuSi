@@ -1,7 +1,7 @@
 #!/bin/sh
 # Лицензия ISC
 
-# Авторские права (c) 2026 ---
+# Авторские права (c) 2026 ЛШТШФУМ АЩЬФ
 
 # Разрешается использовать, копировать, изменять и/или распространять данное
 # программное обеспечение для любых целей как с оплатой, так и без нее,
@@ -973,6 +973,7 @@ c89_parser () {
 		_LN=1 _COL=1 _RD=0
 
 	while :; do
+	    #echo "ОТЛАДКА: TOP OF LOOP: STATE=$STATE, CODE head=${CODE%% *}" >&2
 		pars_progress
 		ast_feed
 
@@ -3461,6 +3462,7 @@ c89_parser () {
 			esac;;
 
 		'i'*)
+		    #echo "DEBUG_i: Начало обработки, STATE=$STATE, _COL=$_COL, MATCH=$MATCH" >&2
 			case $STATE in
 			Cc)
 				ast_more; MATCH="${CODE%%[!a-zA-Z0-9_]*}"
@@ -5992,9 +5994,485 @@ c89_parser () {
 			esac;;	
 
 
-		# После секции для 'в'* добавьте:
-		'ц'*|'Ц'*)
+		'е'*|'Е'*)
 			case $STATE in
+			Cc)
+				_accum_utf8
+				_ucase "$MATCH"
+				case "$REPLY" in
+				'ЕСЛИ') STATE=C68; ast_C27; continue;;
+				*) STATE=C68; ast_C38; continue;;
+				esac;;
+			Cb) STATE=C67; ast_Cc; continue;;
+			C67) ast_Cb; continue;;
+			C3) STATE=C98; ast_C37; continue;;
+			C137) STATE=C138; ast_Cc; continue;;
+			C139) STATE=C138; ast_Cc; continue;;
+			C142) STATE=C143; ast_Cc; continue;;
+			C147) STATE=C148; ast_Cc; continue;;
+			C30) STATE=C149; ast_Cc; continue;;
+			C156) STATE=C157; ast_Cc; continue;;
+			C159) STATE=C160; ast_Cc; continue;;
+			C161) STATE=C162; ast_Cc; continue;;
+			C36) STATE=C167; ast_C37; continue;;
+			C37) STATE=C169; ast_Cc; continue;;
+			C169) STATE=C170; ast_C37; continue;;
+			Ca) STATE=Ca; ast_Cb; continue;;
+			Cd) STATE=C69; ast_Cw; continue;;
+			Ce) STATE=C70; ast_Cw; continue;;
+			Cf) STATE=C71; ast_Cw; continue;;
+			Cg) STATE=C72; ast_Cw; continue;;
+			Ch) STATE=C73; ast_Cw; continue;;
+			Ci) STATE=C74; ast_Cw; continue;;
+			Cj) STATE=C75; ast_Cw; continue;;
+			Ck) STATE=C76; ast_Cw; continue;;
+			Cl) STATE=C77; ast_Cw; continue;;
+			Cm) STATE=C78; ast_Cw; continue;;
+			Cn) STATE=C79; ast_Cw; continue;;
+			Co) STATE=C80; ast_Cw; continue;;
+			Cp) STATE=C81; ast_Cw; continue;;
+			Cq) STATE=C82; ast_Cw; continue;;
+			Cr) STATE=C83; ast_Cw; continue;;
+			Cs) STATE=C84; ast_Cw; continue;;
+			Ct) STATE=C85; ast_C15; continue;;
+			Cu) STATE=C86; ast_C15; continue;;
+			Cv) STATE=C87; ast_C16; continue;;
+			Cw) STATE=C88; ast_Cy; continue;;
+			Cx) STATE=C89; ast_Cw; continue;;
+			Cy) STATE=C90; ast_C48; continue;;
+			C4) ast_C39; continue;;
+			C5) STATE=C101; ast_C21; continue;;
+			C103) STATE=C6; ast_C7; continue;;
+			C7) STATE=C104; ast_C48; continue;;
+			C105) ast_C39; continue;;
+			C106) STATE=C104; ast_C21; continue;;
+			C107) STATE=C108; ast_C9; continue;;
+			C9) STATE=C109; ast_C48; continue;;
+			C10) STATE=C110; ast_C9; continue;;
+			C12) STATE=C112; ast_C48; continue;;
+			C13) STATE=C113; ast_C48; continue;;
+			C14) STATE=C114; ast_C48; continue;;
+			C15) STATE=C115; ast_C48; continue;;
+			C115) STATE=C116; ast_Cw; continue;;
+			C16) STATE=C118; ast_C48; continue;;
+			C118) STATE=C119; ast_C17; continue;;
+			C121) STATE=C122; ast_C18; continue;;
+			C17) STATE=C124; ast_C19; continue;;
+			C125) STATE=C126; ast_C18; continue;;
+			C18) ast_Cy; continue;;
+			C19) STATE=C127; ast_C20; continue;;
+			C128) STATE=C127; ast_C20; continue;;
+			C20) STATE=C129; ast_C48; continue;;
+			C130) STATE=C129; ast_C39; continue;;
+			C21) STATE=C131; ast_C39; continue;;
+			C22) STATE=C132; ast_C21; continue;;
+			C133) STATE=C132; ast_C21; continue;;
+			C23) ast_C39; continue;;
+			C26) STATE=C134; ast_C48; continue;;
+			C135) STATE=C136; ast_C39; continue;;
+			C140) STATE=C141; ast_C39; continue;;
+			C144) ast_C39; continue;;
+			C145) ast_C39; continue;;
+			C146) ast_C39; continue;;
+			C151) STATE=C152; ast_C39; continue;;
+			C154) STATE=C155; ast_C39; continue;;
+			C32) STATE=C158; ast_C39; continue;;
+			C163) STATE=C164; ast_C39; continue;;
+			C35) STATE=C166; ast_C48; continue;;
+			C38) STATE=C171; ast_C39; continue;;
+			C39) ast_C40; continue;;
+			C40) STATE=C172; ast_C48; continue;;
+			C173) STATE=C174; ast_C42; continue;;
+			C42) STATE=C175; ast_C48; continue;;
+			C175) ast_C48; continue;;
+			C43) STATE=C176; ast_C39; continue;;
+			C44) STATE=C177; ast_C39; continue;;
+			C178) STATE=C177; ast_C39; continue;;
+			C49) STATE=C179; ast_C40; continue;;
+			C50) STATE=C180; ast_C40; continue;;
+			C51) STATE=C181; ast_C40; continue;;
+			C52) STATE=C182; ast_C40; continue;;
+			C53) STATE=C183; ast_C40; continue;;
+			C54) STATE=C184; ast_C40; continue;;
+			C55) ast_C40; continue;;
+			C56) STATE=C57; ast_C44; continue;;
+			C58) STATE=C59; ast_C39; continue;;
+			C60) STATE=C185; ast_C48; continue;;
+			C61) STATE=C186; ast_C48; continue;;
+			C64) ast_C40; continue;;
+			C66) ast_C40; continue;;
+			C68|C88|C91|C92|C97|C104|C108|C109|C111|C116|C117|C119|C123|C127|C129|C131|C138|C168|C170|C172|C177|C90|Cz|C93|C2|C99|C101|C185|C186|C187|C188) ast_close_col_xc;;
+			C69|C70|C71|C72|C73|C74|C75|C76|C77|C78|C79|C80|C81|C82|C83|C84|C85|C86|C87|C89|C96|C98|C100|C102|C110|C112|C113|C114|C122|C126|C143|C148|C157|C160|C162|C166|C167|C179|C180|C181|C182|C183|C184) ast_close_xc;;
+			*) _pars_err;;
+			esac;;
+
+
+		'з'*|'З'*)
+			case $STATE in
+			Cc)
+				_accum_utf8
+				_ucase "$MATCH"
+				case "$REPLY" in
+				'ЗАПУСК') STATE=C68; ast_C38; continue;;
+				*) STATE=C68; ast_C38; continue;;
+				esac;;
+			Cb) STATE=C67; ast_Cc; continue;;
+			C67) ast_Cb; continue;;
+			C3) STATE=C98; ast_C37; continue;;
+			C137) STATE=C138; ast_Cc; continue;;
+			C139) STATE=C138; ast_Cc; continue;;
+			C142) STATE=C143; ast_Cc; continue;;
+			C147) STATE=C148; ast_Cc; continue;;
+			C30) STATE=C149; ast_Cc; continue;;
+			C156) STATE=C157; ast_Cc; continue;;
+			C159) STATE=C160; ast_Cc; continue;;
+			C161) STATE=C162; ast_Cc; continue;;
+			C36) STATE=C167; ast_C37; continue;;
+			C37) STATE=C169; ast_Cc; continue;;
+			C169) STATE=C170; ast_C37; continue;;
+			Ca) STATE=Ca; ast_Cb; continue;;
+			Cd) STATE=C69; ast_Cw; continue;;
+			Ce) STATE=C70; ast_Cw; continue;;
+			Cf) STATE=C71; ast_Cw; continue;;
+			Cg) STATE=C72; ast_Cw; continue;;
+			Ch) STATE=C73; ast_Cw; continue;;
+			Ci) STATE=C74; ast_Cw; continue;;
+			Cj) STATE=C75; ast_Cw; continue;;
+			Ck) STATE=C76; ast_Cw; continue;;
+			Cl) STATE=C77; ast_Cw; continue;;
+			Cm) STATE=C78; ast_Cw; continue;;
+			Cn) STATE=C79; ast_Cw; continue;;
+			Co) STATE=C80; ast_Cw; continue;;
+			Cp) STATE=C81; ast_Cw; continue;;
+			Cq) STATE=C82; ast_Cw; continue;;
+			Cr) STATE=C83; ast_Cw; continue;;
+			Cs) STATE=C84; ast_Cw; continue;;
+			Ct) STATE=C85; ast_C15; continue;;
+			Cu) STATE=C86; ast_C15; continue;;
+			Cv) STATE=C87; ast_C16; continue;;
+			Cw) STATE=C88; ast_Cy; continue;;
+			Cx) STATE=C89; ast_Cw; continue;;
+			Cy) STATE=C90; ast_C48; continue;;
+			C4) ast_C39; continue;;
+			C5) STATE=C101; ast_C21; continue;;
+			C103) STATE=C6; ast_C7; continue;;
+			C7) STATE=C104; ast_C48; continue;;
+			C105) ast_C39; continue;;
+			C106) STATE=C104; ast_C21; continue;;
+			C107) STATE=C108; ast_C9; continue;;
+			C9) STATE=C109; ast_C48; continue;;
+			C10) STATE=C110; ast_C9; continue;;
+			C12) STATE=C112; ast_C48; continue;;
+			C13) STATE=C113; ast_C48; continue;;
+			C14) STATE=C114; ast_C48; continue;;
+			C15) STATE=C115; ast_C48; continue;;
+			C115) STATE=C116; ast_Cw; continue;;
+			C16) STATE=C118; ast_C48; continue;;
+			C118) STATE=C119; ast_C17; continue;;
+			C121) STATE=C122; ast_C18; continue;;
+			C17) STATE=C124; ast_C19; continue;;
+			C125) STATE=C126; ast_C18; continue;;
+			C18) ast_Cy; continue;;
+			C19) STATE=C127; ast_C20; continue;;
+			C128) STATE=C127; ast_C20; continue;;
+			C20) STATE=C129; ast_C48; continue;;
+			C130) STATE=C129; ast_C39; continue;;
+			C21) STATE=C131; ast_C39; continue;;
+			C22) STATE=C132; ast_C21; continue;;
+			C133) STATE=C132; ast_C21; continue;;
+			C23) ast_C39; continue;;
+			C26) STATE=C134; ast_C48; continue;;
+			C135) STATE=C136; ast_C39; continue;;
+			C140) STATE=C141; ast_C39; continue;;
+			C144) ast_C39; continue;;
+			C145) ast_C39; continue;;
+			C146) ast_C39; continue;;
+			C151) STATE=C152; ast_C39; continue;;
+			C154) STATE=C155; ast_C39; continue;;
+			C32) STATE=C158; ast_C39; continue;;
+			C163) STATE=C164; ast_C39; continue;;
+			C35) STATE=C166; ast_C48; continue;;
+			C38) STATE=C171; ast_C39; continue;;
+			C39) ast_C40; continue;;
+			C40) STATE=C172; ast_C48; continue;;
+			C173) STATE=C174; ast_C42; continue;;
+			C42) STATE=C175; ast_C48; continue;;
+			C175) ast_C48; continue;;
+			C43) STATE=C176; ast_C39; continue;;
+			C44) STATE=C177; ast_C39; continue;;
+			C178) STATE=C177; ast_C39; continue;;
+			C49) STATE=C179; ast_C40; continue;;
+			C50) STATE=C180; ast_C40; continue;;
+			C51) STATE=C181; ast_C40; continue;;
+			C52) STATE=C182; ast_C40; continue;;
+			C53) STATE=C183; ast_C40; continue;;
+			C54) STATE=C184; ast_C40; continue;;
+			C55) ast_C40; continue;;
+			C56) STATE=C57; ast_C44; continue;;
+			C58) STATE=C59; ast_C39; continue;;
+			C60) STATE=C185; ast_C48; continue;;
+			C61) STATE=C186; ast_C48; continue;;
+			C64) ast_C40; continue;;
+			C66) ast_C40; continue;;
+			C68|C88|C91|C92|C97|C104|C108|C109|C111|C116|C117|C119|C123|C127|C129|C131|C138|C168|C170|C172|C177|C90|Cz|C93|C2|C99|C101|C185|C186|C187|C188) ast_close_col_xc;;
+			C69|C70|C71|C72|C73|C74|C75|C76|C77|C78|C79|C80|C81|C82|C83|C84|C85|C86|C87|C89|C96|C98|C100|C102|C110|C112|C113|C114|C122|C126|C143|C148|C157|C160|C162|C166|C167|C179|C180|C181|C182|C183|C184) ast_close_xc;;
+			*) _pars_err;;
+			esac;;	
+
+
+		'и'*|'И'*)
+			case $STATE in
+			Cc)
+				_accum_utf8
+				_ucase "$MATCH"
+				case "$REPLY" in
+				'ИНАЧЕ') STATE=C68; ast_C38; continue;;
+				*) STATE=C68; ast_C38; continue;;
+				esac;;
+			C138)
+				_accum_utf8
+				_ucase "$MATCH"
+				case "$REPLY" in
+				'ИНАЧЕ') ast_skip_match; STATE=C139; continue;;
+				*) ast_consume_match
+					ast_C48; ast_close; continue;;
+				esac;;
+			Cb) STATE=C67; ast_Cc; continue;;
+			C67) ast_Cb; continue;;
+			C3) STATE=C98; ast_C37; continue;;
+			C137) STATE=C138; ast_Cc; continue;;
+			C139) STATE=C138; ast_Cc; continue;;
+			C142) STATE=C143; ast_Cc; continue;;
+			C147) STATE=C148; ast_Cc; continue;;
+			C30) STATE=C149; ast_Cc; continue;;
+			C156) STATE=C157; ast_Cc; continue;;
+			C159) STATE=C160; ast_Cc; continue;;
+			C161) STATE=C162; ast_Cc; continue;;
+			C36) STATE=C167; ast_C37; continue;;
+			C37) STATE=C169; ast_Cc; continue;;
+			C169) STATE=C170; ast_C37; continue;;
+			Ca) STATE=Ca; ast_Cb; continue;;
+			Cd) STATE=C69; ast_Cw; continue;;
+			Ce) STATE=C70; ast_Cw; continue;;
+			Cf) STATE=C71; ast_Cw; continue;;
+			Cg) STATE=C72; ast_Cw; continue;;
+			Ch) STATE=C73; ast_Cw; continue;;
+			Ci) STATE=C74; ast_Cw; continue;;
+			Cj) STATE=C75; ast_Cw; continue;;
+			Ck) STATE=C76; ast_Cw; continue;;
+			Cl) STATE=C77; ast_Cw; continue;;
+			Cm) STATE=C78; ast_Cw; continue;;
+			Cn) STATE=C79; ast_Cw; continue;;
+			Co) STATE=C80; ast_Cw; continue;;
+			Cp) STATE=C81; ast_Cw; continue;;
+			Cq) STATE=C82; ast_Cw; continue;;
+			Cr) STATE=C83; ast_Cw; continue;;
+			Cs) STATE=C84; ast_Cw; continue;;
+			Ct) STATE=C85; ast_C15; continue;;
+			Cu) STATE=C86; ast_C15; continue;;
+			Cv) STATE=C87; ast_C16; continue;;
+			Cw) STATE=C88; ast_Cy; continue;;
+			Cx) STATE=C89; ast_Cw; continue;;
+			Cy) STATE=C90; ast_C48; continue;;
+			C4) ast_C39; continue;;
+			C5) STATE=C101; ast_C21; continue;;
+			C103) STATE=C6; ast_C7; continue;;
+			C7) STATE=C104; ast_C48; continue;;
+			C105) ast_C39; continue;;
+			C106) STATE=C104; ast_C21; continue;;
+			C107) STATE=C108; ast_C9; continue;;
+			C9) STATE=C109; ast_C48; continue;;
+			C10) STATE=C110; ast_C9; continue;;
+			C12) STATE=C112; ast_C48; continue;;
+			C13) STATE=C113; ast_C48; continue;;
+			C14) STATE=C114; ast_C48; continue;;
+			C15) STATE=C115; ast_C48; continue;;
+			C115) STATE=C116; ast_Cw; continue;;
+			C16) STATE=C118; ast_C48; continue;;
+			C118) STATE=C119; ast_C17; continue;;
+			C121) STATE=C122; ast_C18; continue;;
+			C17) STATE=C124; ast_C19; continue;;
+			C125) STATE=C126; ast_C18; continue;;
+			C18) ast_Cy; continue;;
+			C19) STATE=C127; ast_C20; continue;;
+			C128) STATE=C127; ast_C20; continue;;
+			C20) STATE=C129; ast_C48; continue;;
+			C130) STATE=C129; ast_C39; continue;;
+			C21) STATE=C131; ast_C39; continue;;
+			C22) STATE=C132; ast_C21; continue;;
+			C133) STATE=C132; ast_C21; continue;;
+			C23) ast_C39; continue;;
+			C26) STATE=C134; ast_C48; continue;;
+			C135) STATE=C136; ast_C39; continue;;
+			C140) STATE=C141; ast_C39; continue;;
+			C144) ast_C39; continue;;
+			C145) ast_C39; continue;;
+			C146) ast_C39; continue;;
+			C151) STATE=C152; ast_C39; continue;;
+			C154) STATE=C155; ast_C39; continue;;
+			C32) STATE=C158; ast_C39; continue;;
+			C163) STATE=C164; ast_C39; continue;;
+			C35) STATE=C166; ast_C48; continue;;
+			C38) STATE=C171; ast_C39; continue;;
+			C39) ast_C40; continue;;
+			C40) STATE=C172; ast_C48; continue;;
+			C173) STATE=C174; ast_C42; continue;;
+			C42) STATE=C175; ast_C48; continue;;
+			C175) ast_C48; continue;;
+			C43) STATE=C176; ast_C39; continue;;
+			C44) STATE=C177; ast_C39; continue;;
+			C178) STATE=C177; ast_C39; continue;;
+			C49) STATE=C179; ast_C40; continue;;
+			C50) STATE=C180; ast_C40; continue;;
+			C51) STATE=C181; ast_C40; continue;;
+			C52) STATE=C182; ast_C40; continue;;
+			C53) STATE=C183; ast_C40; continue;;
+			C54) STATE=C184; ast_C40; continue;;
+			C55) ast_C40; continue;;
+			C56) STATE=C57; ast_C44; continue;;
+			C58) STATE=C59; ast_C39; continue;;
+			C60) STATE=C185; ast_C48; continue;;
+			C61) STATE=C186; ast_C48; continue;;
+			C64) ast_C40; continue;;
+			C66) ast_C40; continue;;
+			C68|C88|C91|C92|C97|C104|C108|C109|C111|C116|C117|C119|C123|C127|C129|C131|C138|C168|C170|C172|C177|C90|Cz|C93|C2|C99|C101|C185|C186|C187|C188) ast_close_col_xc;;
+			C69|C70|C71|C72|C73|C74|C75|C76|C77|C78|C79|C80|C81|C82|C83|C84|C85|C86|C87|C89|C96|C98|C100|C102|C110|C112|C113|C114|C122|C126|C143|C148|C157|C160|C162|C166|C167|C179|C180|C181|C182|C183|C184) ast_close_xc;;
+			*) _pars_err;;
+			esac;;
+
+
+		'о'*|'О'*)
+			case $STATE in
+			Cc)
+				_accum_utf8
+				_ucase "$MATCH"
+				case "$REPLY" in
+				'ОВЗ') STATE=C68; ast_Cf; continue;; # void - отсутствие возвращаемого знаения
+				*) STATE=C68; ast_C38; continue;;
+				esac;;
+			C11)
+				_accum_utf8
+				_ucase "$MATCH"
+				case "$REPLY" in
+				'ОВЗ') CONSUMED='void'; ast_Cf; ast_close; STATE=C111; continue;;
+				*) CONSUMED="$MATCH"; ast_C48; ast_close; STATE=C111; continue;;
+				esac;;
+			Cb) STATE=C67; ast_Cc; continue;;
+			C67) ast_Cb; continue;;
+			C3) STATE=C98; ast_C37; continue;;
+			C137) STATE=C138; ast_Cc; continue;;
+			C139) STATE=C138; ast_Cc; continue;;
+			C142) STATE=C143; ast_Cc; continue;;
+			C147) STATE=C148; ast_Cc; continue;;
+			C30) STATE=C149; ast_Cc; continue;;
+			C156) STATE=C157; ast_Cc; continue;;
+			C159) STATE=C160; ast_Cc; continue;;
+			C161) STATE=C162; ast_Cc; continue;;
+			C36) STATE=C167; ast_C37; continue;;
+			C37) STATE=C169; ast_Cc; continue;;
+			C169) STATE=C170; ast_C37; continue;;
+			Ca) STATE=Ca; ast_Cb; continue;;
+			C94) STATE=C94; ast_C8; continue;;
+			Cd) STATE=C69; ast_Cw; continue;;
+			Ce) STATE=C70; ast_Cw; continue;;
+			Cf) STATE=C71; ast_Cw; continue;;
+			Cg) STATE=C72; ast_Cw; continue;;
+			Ch) STATE=C73; ast_Cw; continue;;
+			Ci) STATE=C74; ast_Cw; continue;;
+			Cj) STATE=C75; ast_Cw; continue;;
+			Ck) STATE=C76; ast_Cw; continue;;
+			Cl) STATE=C77; ast_Cw; continue;;
+			Cm) STATE=C78; ast_Cw; continue;;
+			Cn) STATE=C79; ast_Cw; continue;;
+			Co) STATE=C80; ast_Cw; continue;;
+			Cp) STATE=C81; ast_Cw; continue;;
+			Cq) STATE=C82; ast_Cw; continue;;
+			Cr) STATE=C83; ast_Cw; continue;;
+			Cs) STATE=C84; ast_Cw; continue;;
+			Ct) STATE=C85; ast_C15; continue;;
+			Cu) STATE=C86; ast_C15; continue;;
+			Cv) STATE=C87; ast_C16; continue;;
+			Cw) STATE=C88; ast_Cy; continue;;
+			Cx) STATE=C89; ast_Cw; continue;;
+			Cy) STATE=C90; ast_C48; continue;;
+			C4) ast_C39; continue;;
+			C5) STATE=C101; ast_C21; continue;;
+			C103) STATE=C6; ast_C7; continue;;
+			C7) STATE=C104; ast_C48; continue;;
+			C105) ast_C39; continue;;
+			C106) STATE=C104; ast_C21; continue;;
+			C107) STATE=C108; ast_C9; continue;;
+			C9) STATE=C109; ast_C48; continue;;
+			C10) STATE=C110; ast_C9; continue;;
+			C12) STATE=C112; ast_C48; continue;;
+			C13) STATE=C113; ast_C48; continue;;
+			C14) STATE=C114; ast_C48; continue;;
+			C15) STATE=C115; ast_C48; continue;;
+			C115) STATE=C116; ast_Cw; continue;;
+			C16) STATE=C118; ast_C48; continue;;
+			C118) STATE=C119; ast_C17; continue;;
+			C121) STATE=C122; ast_C18; continue;;
+			C17) STATE=C124; ast_C19; continue;;
+			C125) STATE=C126; ast_C18; continue;;
+			C18) ast_Cy; continue;;
+			C19) STATE=C127; ast_C20; continue;;
+			C128) STATE=C127; ast_C20; continue;;
+			C20) STATE=C129; ast_C48; continue;;
+			C130) STATE=C129; ast_C39; continue;;
+			C21) STATE=C131; ast_C39; continue;;
+			C22) STATE=C132; ast_C21; continue;;
+			C133) STATE=C132; ast_C21; continue;;
+			C23) ast_C39; continue;;
+			C26) STATE=C134; ast_C48; continue;;
+			C135) STATE=C136; ast_C39; continue;;
+			C140) STATE=C141; ast_C39; continue;;
+			C144) ast_C39; continue;;
+			C145) ast_C39; continue;;
+			C146) ast_C39; continue;;
+			C151) STATE=C152; ast_C39; continue;;
+			C154) STATE=C155; ast_C39; continue;;
+			C32) STATE=C158; ast_C39; continue;;
+			C163) STATE=C164; ast_C39; continue;;
+			C35) STATE=C166; ast_C48; continue;;
+			C38) STATE=C171; ast_C39; continue;;
+			C39) ast_C40; continue;;
+			C40) STATE=C172; ast_C48; continue;;
+			C173) STATE=C174; ast_C42; continue;;
+			C42) STATE=C175; ast_C48; continue;;
+			C175) ast_C48; continue;;
+			C43) STATE=C176; ast_C39; continue;;
+			C44) STATE=C177; ast_C39; continue;;
+			C178) STATE=C177; ast_C39; continue;;
+			C49) STATE=C179; ast_C40; continue;;
+			C50) STATE=C180; ast_C40; continue;;
+			C51) STATE=C181; ast_C40; continue;;
+			C52) STATE=C182; ast_C40; continue;;
+			C53) STATE=C183; ast_C40; continue;;
+			C54) STATE=C184; ast_C40; continue;;
+			C55) ast_C40; continue;;
+			C56) STATE=C57; ast_C44; continue;;
+			C58) STATE=C59; ast_C39; continue;;
+			C60) STATE=C185; ast_C48; continue;;
+			C61) STATE=C186; ast_C48; continue;;
+			C64) ast_C40; continue;;
+			C66) ast_C40; continue;;
+			C68|C88|C91|C92|C97|C104|C108|C109|C111|C116|C117|C119|C123|C127|C129|C131|C138|C168|C170|C172|C177|C90|Cz|C93|C2|C99|C101|C185|C186|C187|C188) ast_close_col_xc;;
+			C69|C70|C71|C72|C73|C74|C75|C76|C77|C78|C79|C80|C81|C82|C83|C84|C85|C86|C87|C89|C96|C98|C100|C102|C110|C112|C113|C114|C122|C126|C143|C148|C157|C160|C162|C166|C167|C179|C180|C181|C182|C183|C184) ast_close_xc;;
+			*) _pars_err;;
+			esac;;
+
+
+
+		'ц'*|'Ц'*)
+		    #echo "ОТЛАДКА_ц: Начало обработки, STATE=$STATE, _COL=$_COL, MATCH=$MATCH" >&2
+			#echo "ОТЛАДКА_ц: FIRST CHAR='${CODE%% *}'" >&2
+			case $STATE in
+			C1)
+				#echo "ОТЛАДКА_ц: C1 -> C94, ast_C8" >&2
+				STATE=C94; ast_C8; continue;;
+			C8)
+				#echo "ОТЛАДКА_ц: C8 -> C107, ast_C11" >&2
+				STATE=C107; ast_C11; continue;;
 			Cc)
 				_accum_utf8
 				_ucase "$MATCH"
@@ -6003,12 +6481,18 @@ c89_parser () {
 				*) STATE=C68; ast_C38; continue;;
 				esac;;
 			C11)
+				#echo "ОТЛАДКА_ц: C11: before _accum_utf8, CODE head=${CODE%% *}" >&2
 				_accum_utf8
+				#echo "ОТЛАДКА_ц: C11: after _accum_utf8, MATCH='$MATCH', CODE head=${CODE%% *}" >&2
 				_ucase "$MATCH"
+				#echo "ОТЛАДКА_ц: C11: after _ucase, REPLY='$REPLY'" >&2
 				case "$REPLY" in
 				'ЦЕЛ') CONSUMED='int'; ast_Cd; ast_close; STATE=C111; continue;;
 				*) CONSUMED="$MATCH"; ast_C48; ast_close; STATE=C111; continue;;
 				esac;;
+			C95)
+				#echo "ОТЛАДКА_ц: C95 -> C94, ast_C8" >&2
+				STATE=C94; ast_C8; continue;;
 			Cb) STATE=C67; ast_Cc; continue;;
 			C67) ast_Cb; continue;;
 			C3) STATE=C98; ast_C37; continue;;
@@ -7135,7 +7619,7 @@ _tool_c89cc_add_string () {
                         _STR_DATA="${_STR_DATA}$_byte1$_byte2"
                     else
                         _tool_c89cc_d2h "$REPLY"
-                        echo "DEBUG: ASCII byte: $REPLY" >&2
+                        #echo "DEBUG: ASCII byte: $REPLY" >&2
                         _STR_DATA="${_STR_DATA}$REPLY"
                     fi
                 fi
@@ -7157,7 +7641,7 @@ _tool_c89cc_add_string () {
                     _STR_DATA="${_STR_DATA}$_byte1$_byte2"
                 else
                     _tool_c89cc_d2h "$REPLY"
-                    echo "DEBUG: ASCII byte: $REPLY" >&2
+                    #echo "DEBUG: ASCII byte: $REPLY" >&2
                     _STR_DATA="${_STR_DATA}$REPLY"
                 fi
             fi
@@ -7529,6 +8013,13 @@ _tool_c89cc_func () {
 	case "$_body" in '') return;; esac
 
 	_tool_c89cc_label "$_name"
+
+	case "$_name" in
+	"запуск")
+		_tool_c89cc_label "main"
+		;;
+	esac
+
 	_FRAME_SIZE=0
 	_SCOPE=$((_SCOPE + 1))
 
