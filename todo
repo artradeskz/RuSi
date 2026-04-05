@@ -18,7 +18,7 @@ typedef	  тип_опр
 struct	  структура
 union	    объединение
 enum	    перечисление
-if	      если
+#                                                      if	      если
 #                                                      else	    иначе
 #                                                      while	    цп(цикл пока)
 for	      для
