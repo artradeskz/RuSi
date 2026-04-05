@@ -1,19 +1,15 @@
 /* ============================================================
-
-*********************ПЕРВЕСТИ**********************************
-
-
- * Mini-libc: syscall-only C library for x86-64 Linux
+ * Mini-libc: библиотека C только через системные вызовы для x86-64 Linux
  * ============================================================
- * No external dependencies. Compiled by gen/c89cc.sh.
+ * Без внешних зависимостей. Компилируется через gen/c89cc.sh.
  *
- * Build: printf '\'''\'' | cat lib/libc.c YOURPROG.c | sh gen/c89.sh | sh gen/c89cc.sh > a.out
+ * Сборка: printf '\'''\'' | cat lib/libc.c YOURPROG.c | sh gen/c89.sh | sh gen/c89cc.sh > a.out
  */
 
 /* ============================================================
- * Syscall wrappers
+ * Обёртки системных вызовов
  * ============================================================
- * Linux x86-64 syscall numbers from <asm/unistd_64.h>
+ * Номера системных вызовов Linux x86-64 из <asm/unistd_64.h>
  */
 
 int sys_read(int fd, char *buf, int count) {
@@ -69,7 +65,7 @@ int sys_chdir(char *path) {
 }
 
 /* ============================================================
- * String operations
+ * Операции со строками
  * ============================================================ */
 
 int strlen(char *s) {
@@ -126,26 +122,26 @@ char *memset(char *dst, int c, int n) {
 }
 
 /* ============================================================
- * Memory allocator (bump + free-list via brk)
+ * Аллокатор памяти (наращивание + список свободных через brk)
  * ============================================================
- * Each allocation has an 8-byte header storing the usable size.
- * free() returns blocks to a binned free-list (10 size classes:
+ * У каждого блока есть 8-байтовый заголовок, хранящий полезный размер.
+ * free() возвращает блоки в корзины списка свободных (10 классов размеров:
  * 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096).
- * malloc() checks the free-list before bumping the heap.
+ * malloc() проверяет список свободных перед наращиванием кучи.
  */
 
 int _heap_start;
 int _heap_cur;
 int _heap_end;
 
-/* Free-list bins: 10 classes (8..4096), each a singly-linked list.
- * Freed blocks store the "next" pointer in their first 8 bytes.
- * Allocated at first malloc call (can'\''t use global array, compiler
- * allocates only 8 bytes per global regardless of array size). */
+/* Корзины списка свободных: 10 классов (8..4096), каждый — односвязный список.
+ * Освобождённые блоки хранят указатель "next" в первых 8 байтах.
+ * Выделяется при первом вызове malloc (нельзя использовать глобальный массив,
+ * компилятор выделяет только 8 байт на глобальную переменную независимо от размера массива). */
 int *_free_bins;
 
 int _size_class(int size) {
-	/* Return bin index for 8-aligned size, or -1 if too large */
+	/* Возвращает индекс корзины для выровненного на 8 размера, или -1 если слишком велик */
 	int bin; int s;
 	bin = 0; s = 8;
 	while (s < size) { s = s * 2; bin = bin + 1; if (bin >= 10) return -1; }
@@ -161,7 +157,7 @@ int malloc(int size) {
 		_heap_start = sys_brk(0);
 		_heap_cur = _heap_start;
 		_heap_end = sys_brk(_heap_start + 8388608);
-		/* Allocate free-list bins (10 entries, zeroed) */
+		/* Выделяем корзины списка свободных (10 записей, обнулённые) */
 		_free_bins = _heap_cur;
 		_heap_cur = _heap_cur + 80;
 		bin = 0; while (bin < 10) { _free_bins[bin] = 0; bin = bin + 1; }
@@ -178,7 +174,7 @@ int malloc(int size) {
 			return cur;
 		}
 	}
-	/* Bump allocate with 8-byte size header */
+	/* Наращивание с 8-байтовым заголовком размера */
 	cur = _heap_cur;
 	_heap_cur = cur + size + 8;
 	if (_heap_cur > _heap_end) {
@@ -195,19 +191,19 @@ void free(char *ptr) {
 	int bin;
 	int *hp;
 	if (ptr == 0) return;
-	/* Only free heap-allocated pointers (skip string literals, etc.) */
+	/* Освобождаем только указатели из кучи (пропускаем строковые литералы и т.п.) */
 	if (ptr <= _heap_start || ptr >= _heap_cur) return;
 	hp = ptr - 8;
-	size = hp[0];           /* read header */
+	size = hp[0];           /* читаем заголовок */
 	bin = _size_class(size);
-	if (bin < 0) return;    /* oversized: leak */
+	if (bin < 0) return;    /* слишком большой: утечка */
 	hp = ptr;
-	hp[0] = _free_bins[bin]; /* store next ptr in block */
+	hp[0] = _free_bins[bin]; /* сохраняем следующий указатель в блоке */
 	_free_bins[bin] = ptr;
 }
 
 /* ============================================================
- * Temporary arena (bulk-reset between commands)
+ * Временная арена (полный сброс между командами)
  * ============================================================ */
 
 int _tmp_base;
@@ -237,16 +233,16 @@ void tmp_reset() {
 }
 
 /* ============================================================
- * I/O helpers
+ * Вспомогательные функции ввода-вывода
  * ============================================================ */
 
-/* Report stack + heap usage to stderr */
+/* Вывести использование стека и кучи в stderr */
 void mem_report() {
 	int stack_var;
 	fputs("MEM: heap=", 2);
 	print_int((_heap_cur - _heap_start) / 1024);
 	fputs("K stack_approx=", 2);
-	/* &stack_var gives approximate stack pointer */
+	/* &stack_var даёт приблизительное значение указателя стека */
 	print_int(&stack_var);
 	fputs("\n", 2);
 }
@@ -277,13 +273,13 @@ int getchar() {
 	return *(&buf);
 }
 
-/* Print unsigned decimal integer (recursive to avoid local arrays) */
+/* Печать беззнакового десятичного целого (рекурсия для избежания локальных массивов) */
 void print_uint(int n) {
 	if (n >= 10) print_uint(n / 10);
 	putchar(48 + n % 10);
 }
 
-/* Print signed decimal integer */
+/* Печать знакового десятичного целого */
 void print_int(int n) {
 	if (n < 0) {
 		putchar(45);
