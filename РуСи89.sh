@@ -6579,6 +6579,7 @@ c89_parser () {
 				_ucase "$MATCH"
 				case "$REPLY" in
 				'ЦЕЛ') STATE=C68; ast_Cd; continue;;
+				'ЦП') STATE=C68; ast_C28; continue;;
 				*) STATE=C68; ast_C38; continue;;
 				esac;;
 			C11)
