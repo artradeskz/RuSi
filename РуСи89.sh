@@ -450,27 +450,42 @@ ast_tokens () {
 # Формат: X<n>='<тип> [<индексы_дочерних>...]'  V<n>='<значение>'
 # Использует динамическую область видимости для доступа к локальным V<n>/X<n> вызывающего.
 ast_out () {
-	set -- 0
-	while test $# -gt 0; do
-		NODE=$1; shift
-		eval "_pq=\"\${V$NODE:-}\"; _D=\"\$X$NODE\""
-		case "$_pq" in ?*)
-			# Экранирование одинарных кавычек в значениях: 'abc'd'ef' -> 'abc'\''ef'
-			case "$_pq" in *"'"*)
-				_printn1 "V$NODE="
-				while :; do
-					case "$_pq" in *"'"*) ;; *) break;; esac
-					_printn1 "'${_pq%%"'"*}'\\'"; _pq="${_pq#*"'"}"
-				done
-				_printn1 "'$_pq'$_EOL";;
-			*) _printr1 "V$NODE='$_pq'";;
-			esac;; esac
-		_printr1 "X$NODE='$_D'"
-		_C="${_D#* }"
-		case "$_C" in "$_D") ;; ?*)
-			IFS=' '; set -- $_C "$@"; IFS=''
-		;; esac
-	done
+    set -- 0
+    local _ast_file="ast_dump.txt"
+    
+    # Очищаем файл перед записью
+    > "$_ast_file"
+    
+    while test $# -gt 0; do
+        NODE=$1; shift
+        eval "_pq=\"\${V$NODE:-}\"; _D=\"\$X$NODE\""
+        case "$_pq" in ?*)
+            # Экранирование одинарных кавычек в значениях: 'abc'd'ef' -> 'abc'\''ef'
+            case "$_pq" in *"'"*)
+                _printn1 "V$NODE="
+                echo -n "V$NODE=" >> "$_ast_file"  # в файл
+                while :; do
+                    case "$_pq" in *"'"*) ;; *) break;; esac
+                    _printn1 "'${_pq%%"'"*}'\\'"; _pq="${_pq#*"'"}"
+                    echo -n "'${_pq%%"'"*}'\\'" >> "$_ast_file"  # в файл
+                done
+                _printn1 "'$_pq'$_EOL"
+                echo "'$_pq'" >> "$_ast_file"  # в файл
+                ;;
+            *) 
+                _printr1 "V$NODE='$_pq'"
+                echo "V$NODE='$_pq'" >> "$_ast_file"  # в файл
+                ;;
+            esac;; esac
+        _printr1 "X$NODE='$_D'"
+        echo "X$NODE='$_D'" >> "$_ast_file"  # в файл
+        _C="${_D#* }"
+        case "$_C" in "$_D") ;; ?*)
+            IFS=' '; set -- $_C "$@"; IFS=''
+        ;; esac
+    done
+    
+    echo "AST saved to: $_ast_file" >&2
 }
 
 # --- Проверка прогресса (обнаружение циклов) ---
@@ -6850,7 +6865,11 @@ c89_parser () {
 		esac
 	done
 
-	ast_out
+
+    
+    # Вызываем оригинальный ast_out для кодогенерации (если нужна)
+    ast_out
+
 }
 
 # --- modules/c89/unast.sh ---
@@ -7093,30 +7112,30 @@ _tool_c89cc_c2d () {
 
     # Если есть сохраненный старший байт - собираем русскую букву
     if test -n "$_UTF8_HIGH_BYTE"; then
-        echo "DEBUG: Processing with stored high byte: $_UTF8_HIGH_BYTE, low byte: $_code" >&2
+        # echo "DEBUG: Processing with stored high byte: $_UTF8_HIGH_BYTE, low byte: $_code" >&2
         if test "$_UTF8_HIGH_BYTE" -eq 208; then
             # D0 xx -> А-п (1040-1071) в Unicode, но нам нужен второй байт как есть
             REPLY=$_code
-            echo "DEBUG: ВТОРОЙ БАЙТ ПОЛУЧЕН Russian char (D0) second byte: $_code" >&2
+            # echo "DEBUG: ВТОРОЙ БАЙТ ПОЛУЧЕН Russian char (D0) second byte: $_code" >&2
 
         else
             # D1 xx -> р-я (1072-1103) + Ё/ё
             case $_code in
-            144) REPLY=168; echo "DEBUG: Ё" >&2;;
-            176) REPLY=184; echo "DEBUG: ё" >&2;;
-            *) REPLY=$_code; echo "DEBUG: Russian char (D1) second byte: $_code" >&2;;
+            144) REPLY=168;; # echo "DEBUG: Ё" >&2;
+            176) REPLY=184;; # echo "DEBUG: ё" >&2;
+            *) REPLY=$_code;; # echo "DEBUG: Russian char (D1) second byte: $_code" >&2; 
             esac
         fi
         # Очищаем переменную после использования
         _UTF8_HIGH_BYTE=
-        echo "DEBUG: Cleared _UTF8_HIGH_BYTE" >&2
+        # echo "DEBUG: Cleared _UTF8_HIGH_BYTE" >&2
         return
     fi
     
     # Старший байт UTF-8 (D0 или D1)
     if test "$_code" -eq 208 || test "$_code" -eq 209; then
         _UTF8_HIGH_BYTE=$_code
-        echo "DEBUG: Stored high byte: $_UTF8_HIGH_BYTE, returning empty" >&2
+        # echo "DEBUG: Stored high byte: $_UTF8_HIGH_BYTE, returning empty" >&2
         REPLY=
         return
     fi
@@ -7694,9 +7713,9 @@ _tool_c89cc_add_string () {
         _saved_high_byte="$_UTF8_HIGH_BYTE"
         
         # Отладка: если есть сохраненный старший байт
-        if test -n "$_saved_high_byte"; then
-            echo "DEBUG: Processing with saved high byte: $_saved_high_byte" >&2
-        fi
+        # if test -n "$_saved_high_byte"; then
+        #     echo "DEBUG: Processing with saved high byte: $_saved_high_byte" >&2
+        # fi
         
         case "$_c" in
         '\') # escape sequence
@@ -7717,7 +7736,7 @@ _tool_c89cc_add_string () {
                         _byte1="$REPLY"
                         _tool_c89cc_d2h "$REPLY"
                         _byte2="$REPLY"
-                        echo "DEBUG: UTF-8 pair: $_byte1 $_byte2 (high: $_saved_high_byte, low: $REPLY)" >&2
+                        # echo "DEBUG: UTF-8 pair: $_byte1 $_byte2 (high: $_saved_high_byte, low: $REPLY)" >&2
                         _STR_DATA="${_STR_DATA}$_byte1$_byte2"
                     else
                         _tool_c89cc_d2h "$REPLY"
@@ -7733,13 +7752,13 @@ _tool_c89cc_add_string () {
             if test -n "$REPLY"; then
                 # Если был сохранен старший байт
                 if test -n "$_saved_high_byte"; then
-				    echo " от _tool_c89cc_c2d получен младший байт $REPLY" >&2
+				    # echo " от _tool_c89cc_c2d получен младший байт $REPLY" >&2
 					_tmp1=$REPLY
                     _tool_c89cc_d2h "$_saved_high_byte"
                     _byte1="$REPLY"
                     _tool_c89cc_d2h "$_tmp1"
                     _byte2="$REPLY"
-                    echo "DEBUG: UTF-8 pair: $_byte1 $_byte2 (high: $_saved_high_byte, low: $_byte2)" >&2
+                    # echo "DEBUG: UTF-8 pair: $_byte1 $_byte2 (high: $_saved_high_byte, low: $_byte2)" >&2
                     _STR_DATA="${_STR_DATA}$_byte1$_byte2"
                 else
                     _tool_c89cc_d2h "$REPLY"
@@ -7750,7 +7769,7 @@ _tool_c89cc_add_string () {
         esac
     done
     _STR_DATA="${_STR_DATA}00"  # null terminator
-    echo "DEBUG: Final _STR_DATA: $_STR_DATA" >&2
+     # echo "DEBUG: Final _STR_DATA: $_STR_DATA" >&2
     REPLY=$_STR_N
 }
 
@@ -9186,6 +9205,9 @@ void print_int(int n) {
 	}
 }
 '
+
+
+
 
 # --- main ---
 _no_libc=0
